@@ -4,6 +4,8 @@ using System.IO;
 using System.Net;
 using System.Text;
 using log4net.ElasticSearch.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Uri = System.Uri;
 
 namespace log4net.ElasticSearch.Infrastructure
@@ -18,6 +20,7 @@ namespace log4net.ElasticSearch.Infrastructure
     {
         const string ContentType = "text/json";
         const string Method = "POST";
+        JsonSerializer _serializer = new JsonSerializer();
 
         public void Post(Uri uri, logEvent item)
         {
@@ -25,7 +28,7 @@ namespace log4net.ElasticSearch.Infrastructure
 
             using (var streamWriter = GetRequestStream(httpWebRequest))
             {
-                streamWriter.Write(item.ToJson());
+                streamWriter.Write(Serialize(item));
                 streamWriter.Flush();
 
                 var httpResponse = (HttpWebResponse) httpWebRequest.GetResponse();
@@ -37,6 +40,12 @@ namespace log4net.ElasticSearch.Infrastructure
                         "Failed to post {0} to {1}.".With(item.GetType().Name, uri));
                 }
             }
+        }
+
+        private static string Serialize(logEvent item)
+        {
+            var result = JsonConvert.SerializeObject(item, new JsonSerializerSettings {Error = (s, c) => c.ErrorContext.Handled = true});
+            return result;
         }
 
         /// <summary>
@@ -58,7 +67,7 @@ namespace log4net.ElasticSearch.Infrastructure
             foreach (var item in items)
             {
                 postBody.AppendLine("{\"index\" : {} }");
-                postBody.AppendLine(item.ToJson());
+                postBody.AppendLine(Serialize(item));
             }
 
             using (var streamWriter = GetRequestStream(httpWebRequest))

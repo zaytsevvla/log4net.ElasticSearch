@@ -30,11 +30,6 @@ namespace log4net.ElasticSearch
             return self.GetProperties().AsPairs();
         }
 
-        public static string ToJson<T>(this T self)
-        {
-            return new JavaScriptSerializer().Serialize(self);
-        }
-
         public static bool Contains(this StringDictionary self, string key)
         {
             return self.ContainsKey(key) && !self[key].IsNullOrEmpty();

@@ -10,6 +10,14 @@ using Xunit.Sdk;
 
 namespace log4net.ElasticSearch.Tests.IntegrationTests
 {
+    class Bad
+    {
+        public string X
+        {
+            get { throw new Exception("a"); }
+        }
+    }
+
     [Collection("IndexCollection")]
     public class ElasticSearchAppenderTests
     {
@@ -37,6 +45,67 @@ namespace log4net.ElasticSearch.Tests.IntegrationTests
                     elasticClient.Search<logEvent>(s => s.Query(qd => qd.Term(le => le.message, message)));
 
                 logEntries.Total.Should().Be(1);
+            });
+        }
+
+        [Fact]
+        public void Can_create_an_event_from_log4net_with_object()
+        {
+            var key = Faker.Lorem.Words(1).Single();
+            var message = new Dictionary<string, object> { [key] = "some text" };
+
+            _log.Info(message);
+
+            Retry.Ignoring<XunitException>(() =>
+            {
+                var logEntries =
+                    elasticClient.Search<logEvent>(s => s.Query(qd => qd.Term(le => le.message, key)));
+
+                logEntries.Total.Should().Be(1);
+            });
+        }
+
+        [Fact]
+        public void Can_create_an_event_from_log4net_with_not_serialyzeble_object()
+        {
+            var key = Faker.Lorem.Words(1).Single();
+            var message = new Dictionary<string, object> { [key] = new Bad() };
+
+            _log.Info(message);
+
+            Retry.Ignoring<XunitException>(() =>
+            {
+                var logEntries =
+                    elasticClient.Search<logEvent>(s => s.Query(qd => qd.Term(le => le.message, key)));
+
+                logEntries.Total.Should().Be(1);
+            });
+        }
+
+        [Fact]
+        public void Can_create_an_event_from_log4net_with_object_with_dots()
+        {
+            var key1 = Faker.Lorem.Words(1).Single();
+            var key2 = Faker.Lorem.Words(1).Single();
+            var key3 = Faker.Lorem.Words(1).Single();
+            var message = new Dictionary<string, object>
+            {
+                {"a.b", key1},
+                {"a_b", key2},
+                {"a", new Dictionary<string, string> {["a.b"] = key3}}
+            };
+
+            _log.Info(message);
+
+            Retry.Ignoring<XunitException>(() =>
+            {
+                foreach (var key in new [] {key1, key2, key3})
+                {
+                    var logEntries =
+                        elasticClient.Search<logEvent>(s => s.Query(qd => qd.Term(le => le.message, key1)));
+
+                    logEntries.Total.Should().Be(1);
+                }
             });
         }
 
