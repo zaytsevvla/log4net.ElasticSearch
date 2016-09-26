@@ -77,7 +77,7 @@ namespace log4net.ElasticSearch
 
         public static string ReplaceDots(this string source)
         {
-            return source?.Replace('.', '_');
+            return source != null ? source.Replace('.', '_') : null;
         }
     }
 }

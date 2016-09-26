@@ -3,16 +3,20 @@ properties {
     $bin_dir        = "$base_dir\bin"
     $sln_path       = "$base_dir\src\log4net.ElasticSearch.sln"
     $config         = "Debug"
+	$platform       = "Any CPU"
     $tests_path     = "$base_dir\src\log4net.ElasticSearch.Tests\bin\$config\log4net.ElasticSearch.Tests.dll"
     $xunit_path     = "$base_dir\src\packages\xunit.runner.console.2.1.0\tools\xunit.console.exe"
     $dirs           = @($bin_dir)
     $artefacts      = @("$base_dir\LICENSE", "$base_dir\readme.txt")
     $nuget_path     = "$base_dir\tools\nuget\NuGet.exe"
     $nuspec_path    = "$base_dir\scripts\log4net.ElasticSearch.nuspec"
+	$source         = "https://mediamarkt.myget.org/F/default/api/v2/package"
+	$apiKey         = "74faaa07-***"
 }
 
 task default        -depends Clean, Compile, Test
 task Package        -depends default, CopyArtefactsToBinDirectory, CreateNugetPackage
+task Publish        -depends Package, SetApiKey, Push
 
 task Clean {
     $dirs | % { Recreate-Directory $_ }
@@ -20,7 +24,7 @@ task Clean {
 
 task Compile {
     exec {
-        msbuild $sln_path /p:Configuration=$config /t:Rebuild /v:Quiet /nologo
+        msbuild $sln_path /p:Configuration=$config /p:Platform=$platform /t:Rebuild /v:Quiet /nologo
     }
 }
 
@@ -42,6 +46,18 @@ task CreateNugetPackage {
 
 task ? -Description "Helper to display task info" {
     Write-Documentation
+}
+
+task SetApiKey {
+	exec {
+        & $nuget_path setApiKey "$apiKey" '-Source' "$source"
+    }
+}
+
+task Push {
+	exec {
+		& $nuget_path push "$bin_dir\*.nupkg" '-Source' "$source"
+    }
 }
 
 

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package >
     <metadata>
-        <id>log4net.ElasticSearch</id>
-        <version>2.3.3</version>
+        <id>log4net.ElasticSearch.media-saturn</id>
+        <version>1.0.0</version>
         <authors>JP Toto</authors>
         <owners>JP Toto</owners>
         <iconUrl>http://nest.azurewebsites.net/images/nuget-icon.png</iconUrl>
@@ -16,9 +16,11 @@
         <dependencies>
             <group targetFramework="net45">
                 <dependency id="log4net" version="2.0.3.0" />
+                <dependency id="Newtonsoft.Json" version="9.0.1" />
             </group>
             <group targetFramework="net40">
                 <dependency id="log4net" version="2.0.3.0" />
+                <dependency id="Newtonsoft.Json" version="9.0.1" />
             </group>
         </dependencies>
     </metadata>

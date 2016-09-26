@@ -52,7 +52,7 @@ namespace log4net.ElasticSearch.Tests.IntegrationTests
         public void Can_create_an_event_from_log4net_with_object()
         {
             var key = Faker.Lorem.Words(1).Single();
-            var message = new Dictionary<string, object> { [key] = "some text" };
+            var message = new Dictionary<string, object> { {key, "some text"} };
 
             _log.Info(message);
 
@@ -69,7 +69,7 @@ namespace log4net.ElasticSearch.Tests.IntegrationTests
         public void Can_create_an_event_from_log4net_with_not_serialyzeble_object()
         {
             var key = Faker.Lorem.Words(1).Single();
-            var message = new Dictionary<string, object> { [key] = new Bad() };
+            var message = new Dictionary<string, object> { { key, new Bad()} };
 
             _log.Info(message);
 
@@ -92,7 +92,7 @@ namespace log4net.ElasticSearch.Tests.IntegrationTests
             {
                 {"a.b", key1},
                 {"a_b", key2},
-                {"a", new Dictionary<string, string> {["a.b"] = key3}}
+                {"a", new Dictionary<string, string> { {"a.b", key3} } }
             };
 
             _log.Info(message);

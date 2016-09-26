@@ -60,6 +60,6 @@ namespace log4net.ElasticSearch.Infrastructure
             throw new NotImplementedException();
         }
 
-        public override bool CanRead => false;
+        public override bool CanRead { get { return false; } }
     }
 }
