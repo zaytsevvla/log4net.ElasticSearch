@@ -12,7 +12,7 @@ namespace log4net.ElasticSearch.Infrastructure
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var t = JToken.FromObject(value);
+            var t = JToken.FromObject(value, serializer);
             if (t.Type != JTokenType.Object)
             {
                 t.WriteTo(writer);
