@@ -68,8 +68,8 @@
     <Compile Include="..\log4net.ElasticSearch\Infrastructure\Pair.cs">
       <Link>Infrastructure\Pair.cs</Link>
     </Compile>
-    <Compile Include="..\log4net.ElasticSearch\Infrastructure\RemoveDotesJsonConverter.cs">
-      <Link>Infrastructure\RemoveDotesJsonConverter.cs</Link>
+    <Compile Include="..\log4net.ElasticSearch\Infrastructure\RemoveDotesJsonWriter.cs">
+      <Link>Infrastructure\RemoveDotesJsonWriter.cs</Link>
     </Compile>
     <Compile Include="..\log4net.ElasticSearch\Models\JsonSerializableException.cs">
       <Link>Models\JsonSerializableException.cs</Link>

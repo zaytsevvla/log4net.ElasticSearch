@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using log4net.Core;
 using log4net.ElasticSearch.Infrastructure;
-using Newtonsoft.Json;
 
 namespace log4net.ElasticSearch.Models
 {
@@ -23,10 +22,8 @@ namespace log4net.ElasticSearch.Models
 
         public string message { get; set; }
 
-        [JsonConverter(typeof(RemoveDotesJsonConverter))]
         public object messageObject { get; set; }
 
-        [JsonConverter(typeof(RemoveDotesJsonConverter))]
         public object exception { get; set; }
 
         public string loggerName { get; set; }
@@ -49,7 +46,6 @@ namespace log4net.ElasticSearch.Models
 
         public string fix { get; set; }
 
-        [JsonConverter(typeof(RemoveDotesJsonConverter))]
         public IDictionary<string, string> properties { get; set; }
 
         public string userName { get; set; }

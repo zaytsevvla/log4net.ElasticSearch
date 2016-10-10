@@ -56,7 +56,7 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Infrastructure\HttpClient.cs" />
     <Compile Include="Infrastructure\Pair.cs" />
-    <Compile Include="Infrastructure\RemoveDotesJsonConverter.cs" />
+    <Compile Include="Infrastructure\RemoveDotesJsonWriter.cs" />
     <Compile Include="Models\JsonSerializableException.cs" />
     <Compile Include="Repository.cs" />
     <Compile Include="Models\Uri.cs" />

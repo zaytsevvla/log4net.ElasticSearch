@@ -5,7 +5,6 @@ using System.Net;
 using System.Text;
 using log4net.ElasticSearch.Models;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Uri = System.Uri;
 
 namespace log4net.ElasticSearch.Infrastructure
@@ -20,7 +19,13 @@ namespace log4net.ElasticSearch.Infrastructure
     {
         const string ContentType = "text/json";
         const string Method = "POST";
-        JsonSerializer _serializer = new JsonSerializer();
+        private readonly JsonSerializer _serializer;
+
+        public HttpClient()
+        {
+            _serializer = new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
+            _serializer.Error += (s, c) => c.ErrorContext.Handled = true;
+        }
 
         public void Post(Uri uri, logEvent item)
         {
@@ -42,10 +47,13 @@ namespace log4net.ElasticSearch.Infrastructure
             }
         }
 
-        private static string Serialize(logEvent item)
+        private string Serialize(logEvent item)
         {
-            var result = JsonConvert.SerializeObject(item, new JsonSerializerSettings {Error = (s, c) => c.ErrorContext.Handled = true});
-            return result;
+            using (var stringWriter = new StringWriter())
+            {
+                _serializer.Serialize(new RemoveDotesJsonWriter(stringWriter), item);
+                return stringWriter.ToString();
+            }
         }
 
         /// <summary>
