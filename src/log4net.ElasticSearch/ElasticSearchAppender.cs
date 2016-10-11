@@ -5,6 +5,7 @@ using System.Threading;
 using log4net.Appender;
 using log4net.Core;
 using log4net.ElasticSearch.Models;
+using log4net.Util;
 
 namespace log4net.ElasticSearch
 {
@@ -17,6 +18,7 @@ namespace log4net.ElasticSearch
 
         int queuedCallbackCount;
         IRepository repository;
+        Timer timer;
 
         public ElasticSearchAppender()
         {
@@ -26,6 +28,7 @@ namespace log4net.ElasticSearch
 
         public string ConnectionString { get; set; }
         public int OnCloseTimeout { get; set; }
+        public int BufferTimeout { get; set; }
 
         public override void ActivateOptions()
         {
@@ -46,9 +49,28 @@ namespace log4net.ElasticSearch
             // Artificially add the buffer size to the connection string so it can be parsed
             // later to decide if we should send a _bulk API call
             ConnectionString += string.Format(";BufferSize={0}", BufferSize);
-            repository = CreateRepository(ConnectionString);            
+            repository = CreateRepository(ConnectionString);
+            SetBufferTimeout();
         }
 
+        private void SetBufferTimeout()
+        {
+            DisposeTimer();
+            
+            if(BufferTimeout > 0)
+                timer = new Timer(_ => Flush(), null, BufferTimeout, BufferTimeout);
+        }
+        
+        private void DisposeTimer()
+        {
+            if (timer != null)
+            {
+                var t = timer;
+                timer = null;
+                t.Dispose();
+            }
+        }
+        
         protected override void SendBuffer(LoggingEvent[] events)
         {
             BeginAsyncSend();
@@ -60,6 +82,7 @@ namespace log4net.ElasticSearch
         protected override void OnClose()
         {
             base.OnClose();
+            DisposeTimer();
 
             if (TryWaitAsyncSendFinish()) return;
             HandleError("Failed to send all queued events in OnClose");

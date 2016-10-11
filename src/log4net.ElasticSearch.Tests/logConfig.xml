@@ -18,9 +18,22 @@
         </evaluator>
       <bufferSize value="1" />
     </appender>
+    <appender name="ElasticSearchAppender_BufferTimer" type="log4net.ElasticSearch.ElasticSearchAppender, log4net.ElasticSearch">
+      <connectionString value="Server=127.0.0.1;Index=log_test;Port=9200;rolling=false"/>
+      <lossy value="false" />
+      <bufferSize value="1000" />
+      <bufferTimeout value="10" />
+    </appender>
     <root>
       <level value="ALL"/>
-      <appender-ref ref="ElasticSearchAppender" />
     </root>
+    <logger name="Common">
+      <level value="ALL" />
+      <appender-ref ref="ElasticSearchAppender" />
+    </logger>
+    <logger name="ElasticSearchAppender_BufferTimer">
+      <level value="ALL" />
+      <appender-ref ref="ElasticSearchAppender_BufferTimer" />
+    </logger>
   </log4net>
 </configuration>

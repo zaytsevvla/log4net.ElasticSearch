@@ -21,7 +21,7 @@ namespace log4net.ElasticSearch.Tests.IntegrationTests
     [Collection("IndexCollection")]
     public class ElasticSearchAppenderTests
     {
-        private static readonly ILog _log = LogManager.GetLogger(typeof(ElasticSearchAppenderTests));
+        private static readonly ILog _log = LogManager.GetLogger("Common");
 
         private IntegrationTestFixture testFixture;
         private ElasticClient elasticClient;
@@ -228,6 +228,23 @@ namespace log4net.ElasticSearch.Tests.IntegrationTests
                 var actualLogEntry = logEntries.Documents.First();
 
                 actualLogEntry.properties[localThreadPropertyName].Should().Be(localTreadProperty);
+            });
+        }
+
+        [Fact]
+        public void BufferTimeoutWorks()
+        {
+            var log = LogManager.GetLogger("ElasticSearchAppender_BufferTimer");
+            var message = Faker.Lorem.Words(1).Single();
+
+            log.Info(message);
+
+            Retry.Ignoring<XunitException>(() =>
+            {
+                var logEntries =
+                    elasticClient.Search<logEvent>(s => s.Query(qd => qd.Term(le => le.message, message)));
+
+                logEntries.Total.Should().Be(1);
             });
         }
 
