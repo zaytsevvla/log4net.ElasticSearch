@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using log4net.ElasticSearch.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Uri = System.Uri;
 
 namespace log4net.ElasticSearch.Infrastructure
@@ -25,6 +26,7 @@ namespace log4net.ElasticSearch.Infrastructure
         {
             _serializer = new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
             _serializer.Error += (s, c) => c.ErrorContext.Handled = true;
+            _serializer.Converters.Add(new StringEnumConverter());
         }
 
         public void Post(Uri uri, logEvent item)

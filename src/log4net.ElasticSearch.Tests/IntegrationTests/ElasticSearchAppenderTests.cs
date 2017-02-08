@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Elasticsearch.Net;
 using FluentAssertions;
 using Nest;
 using Xunit;
 using log4net.ElasticSearch.Models;
 using log4net.ElasticSearch.Tests.Infrastructure;
+using Newtonsoft.Json.Linq;
 using Xunit.Sdk;
 
 namespace log4net.ElasticSearch.Tests.IntegrationTests
@@ -16,6 +18,12 @@ namespace log4net.ElasticSearch.Tests.IntegrationTests
         {
             get { throw new Exception("a"); }
         }
+    }
+
+    enum MyEnum
+    {
+        GoodStringEnumValue,
+        BetterStringEnumValue,
     }
 
     [Collection("IndexCollection")]
@@ -204,6 +212,22 @@ namespace log4net.ElasticSearch.Tests.IntegrationTests
 
                     actualLogEntry.properties[threadPropertyName].Should().Be(threadProperty);
                 }, 20, 1000);
+        }
+
+        [Fact]
+        public void EnumLoggedAsString()
+        {
+            _log.Info(new { val = "BetterStringEnumValue" });
+
+            Retry.Ignoring<XunitException>(() =>
+            {
+                var logEntries = elasticClient.Search<logEvent>(sd => sd.Query(qd => qd.Match(x => x.Query("BetterStringEnumValue").Field("message"))));
+
+                logEntries.Total.Should().Be(1);
+
+                var obj = (JContainer) logEntries.Documents.First().messageObject;
+                obj["val"].Value<string>().Should().Be("BetterStringEnumValue");
+            }, 20, 1000);
         }
 
         [Fact(Skip = "LogicalThreadContext properties cause SerializationException")]
