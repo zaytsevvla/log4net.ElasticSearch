@@ -225,8 +225,32 @@ namespace log4net.ElasticSearch.Tests.IntegrationTests
 
                 logEntries.Total.Should().Be(1);
 
-                var obj = (JContainer) logEntries.Documents.First().messageObject;
-                obj["val"].Value<string>().Should().Be("BetterStringEnumValue");
+                var obj = logEntries.Documents.First().serializedMessage;
+                obj.Should().Contain("BetterStringEnumValue");
+            }, 20, 1000);
+        }
+
+        [Fact]
+        public void Log_other_types()
+        {
+            _log.Info(new { val = "1", key = "one" });
+            _log.Info(new { val = "x", key = "two" });
+            _log.Info(new { val = new { key = "three" }});
+
+            CheckExists("one");
+            CheckExists("two");
+            CheckExists("three");
+        }
+
+        private void CheckExists(string key)
+        {
+            Retry.Ignoring<XunitException>(() =>
+            {
+                var logEntries =
+                    elasticClient.Search<logEvent>(
+                        sd => sd.Query(qd => qd.Match(x => x.Query(key).Field("message"))));
+
+                logEntries.Total.Should().Be(1);
             }, 20, 1000);
         }
 

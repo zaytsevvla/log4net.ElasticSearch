@@ -53,16 +53,7 @@ namespace log4net.ElasticSearch
 
         private string Serialize(object message)
         {
-            var sb = new StringBuilder(256);
-            var sw = new StringWriter(sb, CultureInfo.InvariantCulture);
-            using (var jsonWriter = new JsonTextWriter(sw))
-            {
-                jsonWriter.Formatting = Formatting.None;
-
-                _serializer.Serialize(jsonWriter, message);
-            }
-
-            return sw.ToString();
+            return _serializer.SerialyzeToString(message);
         }
 
         private bool IsAnonymousType(Type type)

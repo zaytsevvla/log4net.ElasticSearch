@@ -5,7 +5,8 @@ using System.Threading;
 using log4net.Appender;
 using log4net.Core;
 using log4net.ElasticSearch.Models;
-using log4net.Util;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace log4net.ElasticSearch
 {
@@ -19,11 +20,15 @@ namespace log4net.ElasticSearch
         int queuedCallbackCount;
         IRepository repository;
         Timer timer;
+        private readonly JsonSerializer _serializer;
 
         public ElasticSearchAppender()
         {
             workQueueEmptyEvent = new ManualResetEvent(true);
             OnCloseTimeout = DefaultOnCloseTimeout;
+            _serializer = new JsonSerializer {ReferenceLoopHandling = ReferenceLoopHandling.Ignore, Formatting = Formatting.Indented};
+            _serializer.Error += (s, c) => c.ErrorContext.Handled = true;
+            _serializer.Converters.Add(new StringEnumConverter());
         }
 
         public string ConnectionString { get; set; }
@@ -95,7 +100,7 @@ namespace log4net.ElasticSearch
 
         protected virtual bool TryAsyncSend(IEnumerable<LoggingEvent> events)
         {
-            return ThreadPool.QueueUserWorkItem(SendBufferCallback, logEvent.CreateMany(events));
+            return ThreadPool.QueueUserWorkItem(SendBufferCallback, logEvent.CreateMany(events, _serializer));
         }
 
         protected virtual bool TryWaitAsyncSendFinish()

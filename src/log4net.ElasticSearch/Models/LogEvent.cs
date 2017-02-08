@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using log4net.Core;
 using log4net.ElasticSearch.Infrastructure;
+using Newtonsoft.Json;
 
 namespace log4net.ElasticSearch.Models
 {
@@ -22,9 +23,11 @@ namespace log4net.ElasticSearch.Models
 
         public string message { get; set; }
 
-        public object messageObject { get; set; }
+        public string serializedMessage { get; set; }
 
         public object exception { get; set; }
+
+        public string serializedException { get; set; }
 
         public string loggerName { get; set; }
 
@@ -54,12 +57,12 @@ namespace log4net.ElasticSearch.Models
 
         public string hostName { get; set; }
 
-        public static IEnumerable<logEvent> CreateMany(IEnumerable<LoggingEvent> loggingEvents)
+        public static IEnumerable<logEvent> CreateMany(IEnumerable<LoggingEvent> loggingEvents, JsonSerializer jsonSerializer)
         {
-            return loggingEvents.Select(@event => Create(@event)).ToArray();
+            return loggingEvents.Select(@event => Create(@event, jsonSerializer)).ToArray();
         }
 
-        static logEvent Create(LoggingEvent loggingEvent)
+        static logEvent Create(LoggingEvent loggingEvent, JsonSerializer jsonSerializer)
         {
             var logEvent = new logEvent
             {
@@ -70,6 +73,7 @@ namespace log4net.ElasticSearch.Models
                 userName = loggingEvent.UserName,
                 timeStamp = loggingEvent.TimeStamp.ToUniversalTime().ToString("O"),
                 exception = loggingEvent.ExceptionObject == null ? new object() : JsonSerializableException.Create(loggingEvent.ExceptionObject),
+                serializedException = loggingEvent.ExceptionObject == null ? default(string) : SerializeException(loggingEvent.ExceptionObject, jsonSerializer),
                 message = loggingEvent.RenderedMessage,
                 fix = loggingEvent.Fix.ToString(),
                 hostName = Environment.MachineName,
@@ -82,16 +86,13 @@ namespace log4net.ElasticSearch.Models
             {
                 if (loggingEvent.MessageObject is Exception)
                 {
-                    logEvent.messageObject = JsonSerializableException.Create((Exception)loggingEvent.MessageObject);
+                    if(loggingEvent.MessageObject != loggingEvent.ExceptionObject)
+                        logEvent.serializedMessage = SerializeException((Exception)loggingEvent.MessageObject, jsonSerializer);
                 }
                 else
                 {
-                    logEvent.messageObject = loggingEvent.MessageObject;
+                    logEvent.serializedMessage = Serialize(loggingEvent.MessageObject, jsonSerializer);
                 }
-            }
-            else
-            {
-                logEvent.messageObject = new object();
             }
 
             if (loggingEvent.LocationInformation != null)
@@ -108,6 +109,12 @@ namespace log4net.ElasticSearch.Models
             return logEvent;
         }
 
+        private static string SerializeException(Exception exception, JsonSerializer jsonSerializer)
+        {
+            return Serialize(exception, jsonSerializer)
+                   ?? Serialize(JsonSerializableException.Create(exception), jsonSerializer);
+        }
+
         static void AddProperties(LoggingEvent loggingEvent, logEvent logEvent)
         {
             loggingEvent.Properties().Union(AppenderPropertiesFor(loggingEvent)).
@@ -117,6 +124,18 @@ namespace log4net.ElasticSearch.Models
         static IEnumerable<KeyValuePair<string, string>> AppenderPropertiesFor(LoggingEvent loggingEvent)
         {
             yield return Pair.For("@timestamp", loggingEvent.TimeStamp.ToUniversalTime().ToString("O"));
+        }
+
+        static string Serialize(object value, JsonSerializer serializer)
+        {
+            try
+            {
+                return serializer.SerialyzeToString(value);
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

@@ -64,6 +64,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerializeMessageConverter.cs" />
     <Compile Include="SerializePatternLayout.cs" />
+    <Compile Include="SerialyzerExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
